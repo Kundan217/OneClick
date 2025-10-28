@@ -1,5 +1,5 @@
 # OneClick
-🛒 OneClick — Multi-Vendor E-Commerce Platform.
+<h2>🛒 OneClick — Multi-Vendor E-Commerce Platform</h2>  
 🌆 A city-wise digital marketplace connecting local vendors and customers, offering seamless online pre-booking, flexible logistics, and modern e-commerce features — all without warehouses!
 
 ✨ Features.
