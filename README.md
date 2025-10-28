@@ -1,11 +1,11 @@
 # OneClick
-🛒 OneClick — Multi-Vendor E-Commerce Platform
+🛒 OneClick — Multi-Vendor E-Commerce Platform.
 🌆 A city-wise digital marketplace connecting local vendors and customers, offering seamless online pre-booking, flexible logistics, and modern e-commerce features — all without warehouses!
 
-✨ Features
-•	🗺️ City-wise vendor & product discovery
-•	🔄 Real-time vendor inventory sync and updates
-•	⏰ Pre-booking with direct vendor-to-customer delivery
+✨ Features.
+•	🗺️ City-wise vendor & product discovery.
+•	🔄 Real-time vendor inventory sync and updates.
+•	⏰ Pre-booking with direct vendor-to-customer delivery.
 •	🚚 Multiple delivery options — gig riders, post, courier, vendor staff, or even bus/train parcels
 •	🧑‍💻 User-friendly dashboards for customers, vendors, and admins
 •	🔐 Secure authentication & data protection
