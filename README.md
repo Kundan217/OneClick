@@ -34,4 +34,11 @@ Layer	Tech
 
 ![Industry-Ready Architecture1](https://github.com/user-attachments/assets/665f26b1-f0b6-4a90-b420-b17d97bb5a3e)
 
+<h2>Sitemap Design🗺️</h2>
+
+![OneClick Sitemap](https://github.com/user-attachments/assets/e88289d7-5c00-4a7c-a962-3844611a9c6c)
+
+
+
+
 
