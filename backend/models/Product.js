@@ -41,6 +41,10 @@ const productSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  numReviews: {
+    type: Number,
+    default: 0,
+  },
   countInStock: {
     type: Number,
     required: true,
@@ -55,6 +59,18 @@ const productSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Vendor',
     required: true,
+  },
+  materials: {
+    type: String,
+  },
+  careInstructions: {
+    type: String,
+  },
+  warranty: {
+    type: String,
+  },
+  specifications: {
+    type: [String], // Array of strings like "Dimensions: 10x10", "Weight: 1kg"
   },
 }, { timestamps: true });
 

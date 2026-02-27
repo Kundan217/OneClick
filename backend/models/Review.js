@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const reviewSchema = new mongoose.Schema({
   product: {
@@ -11,11 +11,19 @@ const reviewSchema = new mongoose.Schema({
     ref: 'Customer',
     required: true,
   },
+  customerName: {
+    type: String,
+    required: true,
+  },
   rating: {
     type: Number,
     required: true,
     min: 1,
     max: 5,
+  },
+  title: {
+    type: String,
+    default: '',
   },
   feedback: {
     type: String,
@@ -23,6 +31,9 @@ const reviewSchema = new mongoose.Schema({
   },
 }, { timestamps: true });
 
+// One review per customer per product
+reviewSchema.index({ product: 1, customer: 1 }, { unique: true });
+
 const Review = mongoose.model('Review', reviewSchema);
 
-module.exports = Review;
+export { Review };

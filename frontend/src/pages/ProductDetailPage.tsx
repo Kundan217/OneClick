@@ -10,6 +10,7 @@ import ProductInfo from '../components/ProductInfo';
 import Footer from '../components/Footer';
 import PreBooking from '../components/PreBooking';
 import RelatedProducts from '../components/RelatedProducts';
+import ReviewSection from '../components/ReviewSection';
 
 const API_URL = 'http://localhost:5000';
 
@@ -26,6 +27,52 @@ const ProductDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showPreBooking, setShowPreBooking] = useState(false);
+
+  const handlePreBook = async (slot: string, notes: string) => {
+    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+    if (!userInfo.token) {
+      alert('Please login to pre-book this product.');
+      navigate('/auth');
+      return;
+    }
+
+    const address = prompt('Enter your delivery address:');
+    if (!address) return;
+
+    try {
+      const response = await fetch(`${API_URL}/api/orders`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${userInfo.token}`,
+        },
+        body: JSON.stringify({
+          orderItems: [{
+            product: product!._id,
+            vendor: product!.vendor?._id,
+            quantity: 1,
+            price: product!.price,
+          }],
+          totalPrice: product!.price,
+          address,
+          isPreBooked: true,
+          preBookSlot: slot,
+          preBookNotes: notes,
+        }),
+      });
+
+      if (response.ok) {
+        alert('✅ Pre-booking successful! The vendor will be notified.');
+        setShowPreBooking(false);
+      } else {
+        const data = await response.json();
+        alert(`❌ Pre-booking failed: ${data.message}`);
+      }
+    } catch (err) {
+      alert('❌ Error creating pre-booking. Please try again.');
+      console.error(err);
+    }
+  };
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -63,7 +110,9 @@ const ProductDetailPage = () => {
           <img src={getImageUrl(product.image)} alt={product.name} className="w-full rounded-2xl shadow-lg" />
 
           <div className="space-y-6">
-            <p className="text-purple-600 font-semibold">{product.category}</p>
+            <p className="text-purple-600 font-semibold">
+              {typeof product.category === 'object' ? product.category.name : product.category}
+            </p>
             <h1 className="text-4xl font-bold text-gray-900">{product.name}</h1>
             <p className="text-gray-700 text-lg">{product.description}</p>
             <p className="text-5xl font-extrabold text-gray-900">₹{product.price}</p>
@@ -96,7 +145,7 @@ const ProductDetailPage = () => {
 
             {showPreBooking && (
               <div className="mt-6 animate-fade-in-up">
-                <PreBooking />
+                <PreBooking onPreBook={handlePreBook} />
               </div>
             )}
 
@@ -107,14 +156,20 @@ const ProductDetailPage = () => {
 
         {/* Detailed Info Section */}
         <div className="mt-16 space-y-12">
-          <VendorDetails />
-          <ProductInfo />
+          <VendorDetails vendor={product.vendor} />
+          <ProductInfo product={product} />
         </div>
+
+        {/* Reviews Section */}
+        <ReviewSection productId={product._id} />
 
         {/* Related Products Recommendation */}
         <div className="mt-20">
           <h2 className="text-3xl font-bold text-gray-900 mb-8">You Might Also Like</h2>
-          <RelatedProducts category={product.category} currentProductId={product._id} />
+          <RelatedProducts
+            category={typeof product.category === 'object' ? product.category.name : product.category}
+            currentProductId={product._id}
+          />
         </div>
       </div>
       <Footer />

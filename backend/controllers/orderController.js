@@ -1,5 +1,45 @@
 import { Order } from '../models/Order.js';
 import { Vendor } from '../models/Vendor.js';
+import { Customer } from '../models/Customer.js';
+
+// @desc    Create a new order (regular or pre-booked)
+// @route   POST /api/orders
+// @access  Private/Customer
+const createOrder = async (req, res) => {
+  try {
+    const { orderItems, address, totalPrice, isPreBooked, preBookSlot, preBookNotes } = req.body;
+
+    if (!orderItems || orderItems.length === 0) {
+      return res.status(400).json({ message: 'No order items provided' });
+    }
+
+    // Look up Customer profile from the logged-in user
+    const customer = await Customer.findOne({ user: req.user._id });
+    if (!customer) {
+      return res.status(404).json({ message: 'Customer profile not found. Please complete your registration.' });
+    }
+
+    const order = new Order({
+      customer: customer._id,
+      orderItems,
+      totalPrice,
+      address,
+      isPreBooked: isPreBooked || false,
+      preBookSlot: preBookSlot || '',
+      preBookNotes: preBookNotes || '',
+    });
+
+    const createdOrder = await order.save();
+
+    const populatedOrder = await Order.findById(createdOrder._id)
+      .populate('orderItems.product', 'title image price')
+      .populate('customer', 'name email');
+
+    res.status(201).json(populatedOrder);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
 
 // @desc    Get all orders
 // @route   GET /api/orders
@@ -70,5 +110,5 @@ const getVendorSales = async (req, res) => {
   }
 };
 
-export { getVendorSales, getAllOrders, updateOrderStatus };
+export { createOrder, getVendorSales, getAllOrders, updateOrderStatus };
 

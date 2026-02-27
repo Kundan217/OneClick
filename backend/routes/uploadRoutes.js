@@ -6,7 +6,7 @@ const router = express.Router();
 
 const storage = multer.diskStorage({
   destination(req, file, cb) {
-    cb(null, 'uploads/');
+    cb(null, path.join(process.cwd(), 'uploads'));
   },
   filename(req, file, cb) {
     cb(null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`);
@@ -32,10 +32,22 @@ const upload = multer({
   },
 });
 
-router.post('/', upload.single('image'), (req, res) => {
-  res.send({ 
-    message: 'Image Uploaded', 
-    image: `/${req.file.path.replace(/\\/g, '/')}`
+router.post('/', (req, res) => {
+  upload.single('image')(req, res, (err) => {
+    if (err) {
+      return res.status(400).send({ message: err.message || err });
+    }
+    if (!req.file) {
+      return res.status(400).send({ message: 'No file uploaded' });
+    }
+
+    // Normalize path for frontend use (ensure forward slashes)
+    const imagePath = `/uploads/${req.file.filename}`;
+
+    res.send({
+      message: 'Image Uploaded',
+      image: imagePath
+    });
   });
 });
 

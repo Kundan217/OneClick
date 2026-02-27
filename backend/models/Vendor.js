@@ -59,6 +59,15 @@ const vendorSchema = new mongoose.Schema({
   ifscCode: {
     type: String,
   },
+  workshopImage: {
+    type: String,
+  },
+  story: {
+    type: String,
+  },
+  specialty: {
+    type: String,
+  },
 }, { timestamps: true });
 
 vendorSchema.index({ location: '2dsphere' });

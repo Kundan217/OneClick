@@ -99,7 +99,9 @@ const getProductById = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return res.status(404).json({ message: 'Product not found' });
     }
-    const product = await Product.findById(req.params.id).populate('vendor', 'vendorName ownerName city');
+    const product = await Product.findById(req.params.id)
+      .populate('vendor', 'vendorName ownerName city')
+      .populate('category', 'name');
     if (product) {
       res.json(product);
     } else {
@@ -129,7 +131,8 @@ const createProduct = async (req, res) => {
     const createdProduct = await product.save();
     res.status(201).json(createdProduct);
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('Create Product Error:', error);
+    res.status(500).json({ message: error.message || 'Server error creating product' });
   }
 };
 
@@ -208,11 +211,29 @@ const getProductRecommendations = async (req, res) => {
   }
 };
 
+// @desc    Get logged in vendor's products
+// @route   GET /api/products/my
+// @access  Private/Vendor
+const getMyProducts = async (req, res) => {
+  try {
+    const vendor = await Vendor.findOne({ user: req.user._id });
+    if (!vendor) {
+      return res.status(404).json({ message: 'Vendor profile not found' });
+    }
+
+    const products = await Product.find({ vendor: vendor._id }).populate('category', 'name');
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
 export {
   getProducts,
   getProductById,
   createProduct,
   updateProduct,
   deleteProduct,
-  getProductRecommendations
+  getProductRecommendations,
+  getMyProducts
 };

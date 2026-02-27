@@ -13,9 +13,14 @@ const Sidebar = ({ setActiveView }: { setActiveView: (view: string) => void }) =
     { id: 'dashboard', label: 'Dashboard', icon: '📊' },
     { id: 'addProduct', label: 'Add Product', icon: '➕' },
     { id: 'orders', label: 'Orders', icon: '📦' },
+    { id: 'preBookings', label: 'Pre-Bookings', icon: '📅' },
     { id: 'products', label: 'My Products', icon: '🏷️' },
     { id: 'settings', label: 'Settings', icon: '⚙️' },
   ];
+
+  const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+  const displayName = userInfo.vendorName || userInfo.ownerName || userInfo.name || 'Vendor';
+  const initial = displayName.charAt(0).toUpperCase();
 
   return (
     <div className="w-64 h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-gray-300 flex flex-col shadow-xl">
@@ -32,8 +37,8 @@ const Sidebar = ({ setActiveView }: { setActiveView: (view: string) => void }) =
             key={item.id}
             onClick={() => handleClick(item.id)}
             className={`w-full text-left flex items-center space-x-3 py-3 px-4 mb-2 rounded-lg transition-all duration-200 ${active === item.id
-                ? 'bg-blue-600 text-white shadow-md'
-                : 'hover:bg-gray-700 hover:text-white'
+              ? 'bg-blue-600 text-white shadow-md'
+              : 'hover:bg-gray-700 hover:text-white'
               }`}
           >
             <span className="text-xl">{item.icon}</span>
@@ -46,11 +51,11 @@ const Sidebar = ({ setActiveView }: { setActiveView: (view: string) => void }) =
       <div className="p-4 border-t border-gray-700">
         <div className="flex items-center space-x-3 mb-4 p-3 bg-gray-700/50 rounded-lg">
           <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
-            V
+            {initial}
           </div>
           <div>
-            <p className="text-white font-medium text-sm">Vendor</p>
-            <p className="text-gray-400 text-xs">Store Owner</p>
+            <p className="text-white font-medium text-sm truncate max-w-[120px]" title={displayName}>{displayName}</p>
+            <p className="text-gray-400 text-xs truncate max-w-[120px]" title={userInfo.email || 'Store Owner'}>{userInfo.email || 'Store Owner'}</p>
           </div>
         </div>
         <LogoutButton />

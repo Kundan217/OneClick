@@ -38,7 +38,12 @@ const VendorDashboard = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/products`);
+      const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+      const response = await fetch(`${API_URL}/api/products/my`, {
+        headers: {
+          'Authorization': `Bearer ${userInfo.token}`,
+        },
+      });
       const products = await response.json();
 
       setStats({
@@ -303,6 +308,8 @@ const VendorDashboard = () => {
         return <AddProduct />;
       case 'orders':
         return <Orders />;
+      case 'preBookings':
+        return <Orders filterPreBooked={true} />;
       case 'products':
         return renderProducts();
       case 'settings':

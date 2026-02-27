@@ -14,6 +14,7 @@ import categoryRoutes from './routes/categoryRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import reviewRoutes from './routes/reviewRoutes.js';
 
 dotenv.config();
 
@@ -36,6 +37,7 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/reviews', reviewRoutes);
 
 // Serve static assets
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -48,10 +50,20 @@ app.get('/', (req, res) => {
 // Define Port
 const PORT = process.env.PORT || 5000;
 
+import fs from 'fs';
+
 // Start Server
 const startServer = async () => {
   try {
     await connectDB();
+
+    // Ensure uploads directory exists
+    const uploadsDir = path.join(__dirname, 'uploads');
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir);
+      console.log('Created uploads directory');
+    }
+
     // Ensure geospatial index exists for the Vendor model
     await Vendor.createIndexes();
     console.log('Vendor geospatial index ensured.');

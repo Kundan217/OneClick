@@ -66,7 +66,7 @@ const Navbar = ({ onSearch, onLocationSearch, onGeoLocationSearch }: { onSearch:
   return (
     <header className="bg-white shadow-md sticky top-0 z-10">
       <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-        <Link to="/customer" className="text-3xl font-bold text-blue-600 hover:text-blue-700 transition-colors cursor-pointer">E-Shop</Link>
+        <Link to="/customer" className="text-3xl font-bold text-blue-600 hover:text-blue-700 transition-colors cursor-pointer">OneClick</Link>
         <div className="flex items-center space-x-4">
           <form onSubmit={handleLocationSubmit} className="hidden md:flex items-center space-x-2">
             <input

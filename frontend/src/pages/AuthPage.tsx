@@ -70,7 +70,7 @@ const AuthPage = () => {
           <div className="absolute bottom-0 right-0 w-80 h-80 bg-white opacity-10 rounded-full mix-blend-overlay filter blur-3xl translate-x-1/2 translate-y-1/2 animate-pulse animation-delay-2000"></div>
 
           <div className="relative z-10">
-            <h2 className="text-sm font-bold tracking-[0.2em] uppercase opacity-80 mb-2">E-Shop Platform</h2>
+            <h2 className="text-sm font-bold tracking-[0.2em] uppercase opacity-80 mb-2">OneClick</h2>
             <div className="h-1 w-12 bg-white rounded-full opacity-50"></div>
           </div>
 
@@ -87,7 +87,7 @@ const AuthPage = () => {
           </div>
 
           <div className="relative z-10 text-xs opacity-60">
-            &copy; {new Date().getFullYear()} E-Shop Inc. Secure Login.
+            &copy; {new Date().getFullYear()} OneClick. Secure Login.
           </div>
         </div>
 

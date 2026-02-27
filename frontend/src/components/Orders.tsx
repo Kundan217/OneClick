@@ -25,12 +25,22 @@ interface Order {
   deliveryStatus: 'pending' | 'shipped' | 'delivered' | 'cancelled';
   address: string;
   createdAt: string;
+  isPreBooked?: boolean;
+  preBookSlot?: string;
+  preBookNotes?: string;
 }
 
-const Orders = () => {
+interface OrdersProps {
+  filterPreBooked?: boolean;
+}
+
+const Orders = ({ filterPreBooked }: OrdersProps) => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [activeTab, setActiveTab] = useState<'all' | 'prebooked' | 'regular'>(
+    filterPreBooked ? 'prebooked' : 'all'
+  );
 
   useEffect(() => {
     fetchOrders();
@@ -116,6 +126,26 @@ const Orders = () => {
     });
   };
 
+  const getSlotLabel = (slotId: string) => {
+    const slotMap: Record<string, string> = {
+      morning: '🌅 Morning (9 AM - 12 PM)',
+      afternoon: '☀️ Afternoon (1 PM - 5 PM)',
+      evening: '🌇 Evening (5 PM - 8 PM)',
+      next_day: '📅 Next Day Morning (9 AM - 12 PM)',
+    };
+    return slotMap[slotId] || slotId;
+  };
+
+  // Filter orders based on active tab
+  const filteredOrders = orders.filter(order => {
+    if (activeTab === 'prebooked') return order.isPreBooked;
+    if (activeTab === 'regular') return !order.isPreBooked;
+    return true;
+  });
+
+  const preBookedCount = orders.filter(o => o.isPreBooked).length;
+  const regularCount = orders.filter(o => !o.isPreBooked).length;
+
   if (loading) {
     return (
       <div className="p-8 flex items-center justify-center">
@@ -127,7 +157,7 @@ const Orders = () => {
   return (
     <div className="p-8">
       {/* Header */}
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex justify-between items-center mb-6">
         <div>
           <h2 className="text-3xl font-bold text-gray-800 flex items-center space-x-3">
             <span className="bg-orange-100 p-3 rounded-xl">📦</span>
@@ -136,8 +166,39 @@ const Orders = () => {
           <p className="text-gray-600 mt-2">Track and manage all customer orders</p>
         </div>
         <div className="bg-blue-50 px-4 py-2 rounded-lg">
-          <span className="text-blue-600 font-semibold">{orders.length} Orders</span>
+          <span className="text-blue-600 font-semibold">{filteredOrders.length} Orders</span>
         </div>
+      </div>
+
+      {/* Filter Tabs */}
+      <div className="flex space-x-2 mb-6">
+        <button
+          onClick={() => setActiveTab('all')}
+          className={`px-5 py-2.5 rounded-lg font-medium text-sm transition-all ${activeTab === 'all'
+              ? 'bg-blue-600 text-white shadow-md'
+              : 'bg-white text-gray-600 hover:bg-gray-100 border'
+            }`}
+        >
+          All Orders ({orders.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('prebooked')}
+          className={`px-5 py-2.5 rounded-lg font-medium text-sm transition-all ${activeTab === 'prebooked'
+              ? 'bg-purple-600 text-white shadow-md'
+              : 'bg-white text-gray-600 hover:bg-gray-100 border'
+            }`}
+        >
+          📅 Pre-Bookings ({preBookedCount})
+        </button>
+        <button
+          onClick={() => setActiveTab('regular')}
+          className={`px-5 py-2.5 rounded-lg font-medium text-sm transition-all ${activeTab === 'regular'
+              ? 'bg-green-600 text-white shadow-md'
+              : 'bg-white text-gray-600 hover:bg-gray-100 border'
+            }`}
+        >
+          Regular Orders ({regularCount})
+        </button>
       </div>
 
       {error && (
@@ -146,26 +207,67 @@ const Orders = () => {
         </div>
       )}
 
-      {orders.length === 0 ? (
+      {filteredOrders.length === 0 ? (
         <div className="bg-white rounded-2xl shadow-md p-12 text-center">
-          <span className="text-6xl mb-4 block">📭</span>
-          <h3 className="text-xl font-semibold text-gray-800">No Orders Yet</h3>
-          <p className="text-gray-600 mt-2">When customers place orders, they will appear here.</p>
+          <span className="text-6xl mb-4 block">{activeTab === 'prebooked' ? '📅' : '📭'}</span>
+          <h3 className="text-xl font-semibold text-gray-800">
+            {activeTab === 'prebooked' ? 'No Pre-Bookings Yet' : 'No Orders Yet'}
+          </h3>
+          <p className="text-gray-600 mt-2">
+            {activeTab === 'prebooked'
+              ? 'When customers pre-book products, they will appear here.'
+              : 'When customers place orders, they will appear here.'}
+          </p>
         </div>
       ) : (
         <div className="space-y-4">
-          {orders.map((order) => (
-            <div key={order._id} className="bg-white rounded-2xl shadow-md overflow-hidden">
+          {filteredOrders.map((order) => (
+            <div
+              key={order._id}
+              className={`bg-white rounded-2xl shadow-md overflow-hidden ${order.isPreBooked ? 'ring-2 ring-purple-300' : ''
+                }`}
+            >
               {/* Order Header */}
-              <div className="bg-gray-50 px-6 py-4 border-b flex justify-between items-center">
+              <div className={`px-6 py-4 border-b flex justify-between items-center ${order.isPreBooked ? 'bg-purple-50' : 'bg-gray-50'
+                }`}>
                 <div className="flex items-center space-x-4">
                   <span className="text-sm text-gray-500">Order ID:</span>
                   <span className="font-mono font-semibold text-gray-800">{order._id.slice(-8).toUpperCase()}</span>
                   <span className="text-gray-300">|</span>
                   <span className="text-sm text-gray-600">{formatDate(order.createdAt)}</span>
+                  {order.isPreBooked && (
+                    <span className="bg-purple-600 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center space-x-1">
+                      <span>📅</span>
+                      <span>Pre-Booked</span>
+                    </span>
+                  )}
                 </div>
                 <div className="text-xl font-bold text-blue-600">₹{order.totalPrice.toLocaleString()}</div>
               </div>
+
+              {/* Pre-Booking Details (only for pre-booked orders) */}
+              {order.isPreBooked && (
+                <div className="bg-purple-50 border-b border-purple-100 px-6 py-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex items-start space-x-3">
+                      <span className="text-lg">🕐</span>
+                      <div>
+                        <p className="text-xs font-semibold text-purple-700 uppercase tracking-wide">Time Slot</p>
+                        <p className="text-sm font-medium text-gray-800 mt-1">{getSlotLabel(order.preBookSlot || '')}</p>
+                      </div>
+                    </div>
+                    {order.preBookNotes && (
+                      <div className="flex items-start space-x-3">
+                        <span className="text-lg">📝</span>
+                        <div>
+                          <p className="text-xs font-semibold text-purple-700 uppercase tracking-wide">Customer Notes</p>
+                          <p className="text-sm text-gray-700 mt-1 bg-white p-2 rounded-lg border border-purple-100">{order.preBookNotes}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Order Content */}
               <div className="p-6">
@@ -252,4 +354,3 @@ const Orders = () => {
 };
 
 export default Orders;
-

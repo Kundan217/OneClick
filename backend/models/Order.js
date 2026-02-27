@@ -46,6 +46,18 @@ const orderSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  isPreBooked: {
+    type: Boolean,
+    default: false,
+  },
+  preBookSlot: {
+    type: String,
+    default: '',
+  },
+  preBookNotes: {
+    type: String,
+    default: '',
+  },
 }, { timestamps: true });
 
 const Order = mongoose.model('Order', orderSchema);

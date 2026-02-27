@@ -39,6 +39,13 @@ const LandingPage = () => {
 
       <div className="relative z-10 container mx-auto px-6 py-20 min-h-screen flex flex-col justify-center">
 
+        {/* Logo */}
+        <nav className="absolute top-6 left-6 z-50">
+          <Link to="/" className="text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 tracking-tight hover:opacity-80 transition-opacity">
+            OneClick
+          </Link>
+        </nav>
+
         {/* Header Section */}
         <div className="text-center max-w-4xl mx-auto mb-20">
           <span className="inline-block py-1 px-3 rounded-full bg-blue-50 text-blue-600 text-sm font-semibold mb-6 tracking-wide uppercase border border-blue-100">
@@ -86,7 +93,7 @@ const LandingPage = () => {
 
         {/* Footer Text */}
         <div className="text-center mt-20 text-gray-400 text-sm">
-          &copy; {new Date().getFullYear()} E-Shop Platform. All rights reserved.
+          &copy; {new Date().getFullYear()} OneClick. All rights reserved.
         </div>
       </div>
     </div>

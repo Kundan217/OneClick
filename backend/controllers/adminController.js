@@ -5,6 +5,9 @@ import { Order } from '../models/Order.js';
 // @desc    Get admin dashboard stats
 // @route   GET /api/admin/stats
 // @access  Private/Admin
+// @desc    Get admin dashboard stats
+// @route   GET /api/admin/stats
+// @access  Private/Admin
 const getAdminStats = async (req, res) => {
     try {
         // 1. Total Users
@@ -14,11 +17,17 @@ const getAdminStats = async (req, res) => {
         const totalVendors = await Vendor.countDocuments({});
 
         // 3. Total Revenue
+        // Check if there are any paid orders first
+        const paidOrdersCount = await Order.countDocuments({ paymentStatus: 'paid' });
+        console.log(`Found ${paidOrdersCount} paid orders.`);
+
         const revenueResult = await Order.aggregate([
             { $match: { paymentStatus: 'paid' } },
             { $group: { _id: null, total: { $sum: '$totalPrice' } } }
         ]);
+
         const totalRevenue = revenueResult.length > 0 ? revenueResult[0].total : 0;
+        console.log(`Total Revenue Calculated: ${totalRevenue}`);
 
         // 4. Pending Vendor Requests
         const pendingRequests = await Vendor.countDocuments({ isApproved: false });
@@ -30,6 +39,7 @@ const getAdminStats = async (req, res) => {
             pendingRequests
         });
     } catch (error) {
+        console.error('Error in getAdminStats:', error);
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
@@ -62,6 +72,7 @@ const getAdminAnalytics = async (req, res) => {
 
         res.json(dailyRevenue);
     } catch (error) {
+        console.error('Error in getAdminAnalytics:', error);
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 };

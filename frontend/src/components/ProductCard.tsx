@@ -2,6 +2,7 @@ import { type Product } from '../types';
 
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import StarRating from './StarRating';
 
 const API_URL = 'http://localhost:5000';
 
@@ -25,6 +26,12 @@ const ProductCard = ({ product }: { product: Product }) => {
         <img src={getImageUrl(product.image)} alt={product.title} className="w-full h-56 object-cover" />
         <div className="p-6">
           <h3 className="text-xl font-bold text-gray-900 truncate">{product.title}</h3>
+          <div className="flex items-center gap-2 mt-1">
+            <StarRating rating={product.rating || 0} size="sm" />
+            {(product.numReviews ?? 0) > 0 && (
+              <span className="text-xs text-gray-500">({product.numReviews})</span>
+            )}
+          </div>
           <p className="text-lg text-blue-600 font-semibold mt-2">₹{product.price}</p>
           <button
             onClick={handleAddToCart}
