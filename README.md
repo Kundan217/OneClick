@@ -508,7 +508,7 @@ This project is licensed under the ISC License.
 ## 👨‍💻 Author
 
 **Sumit Kumar**
-- GitHub: [@Sumitkmt946](https://github.com/Sumitkmt946)
+- GitHub: [@Sumitkmt946](https://github.com/Sumitkmt946) && [@Kundan217](https://github.com/Kundan217)  
 
 ---
 
@@ -523,7 +523,7 @@ This project is licensed under the ISC License.
 
 ## 📞 Support
 
-For support, email summitkumawat888@gmail.com or create an issue in the repository.
+For support, email-1: summitkumawat888@gmail.com , email2-2 : kundancse02@gmail.com or create an issue in the repository.
 
 ---
 
