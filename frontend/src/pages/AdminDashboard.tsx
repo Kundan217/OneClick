@@ -4,9 +4,10 @@ import VendorTable from '../components/VendorTable';
 import UserTable from '../components/UserTable';
 import AdminSettings from '../components/AdminSettings';
 import LogoutButton from '../components/LogoutButton';
+import AdminIssues from '../components/AdminIssues';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-const API_URL = 'http://localhost:5000';
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 const AdminDashboard = () => {
   const [activeView, setActiveView] = useState('dashboard');
@@ -17,7 +18,6 @@ const AdminDashboard = () => {
     pendingRequests: 0
   });
   const [analyticsData, setAnalyticsData] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [showInviteModal, setShowInviteModal] = useState(false);
 
   useEffect(() => {
@@ -43,8 +43,6 @@ const AdminDashboard = () => {
 
     } catch (error) {
       console.error("Error fetching admin data", error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -226,6 +224,7 @@ const AdminDashboard = () => {
           {activeView === 'dashboard' && renderDashboard()}
           {activeView === 'vendors' && renderVendors()}
           {activeView === 'users' && <UserTable />}
+          {activeView === 'issues' && <AdminIssues />}
           {activeView === 'settings' && <AdminSettings />}
         </div>
       </main>

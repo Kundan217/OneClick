@@ -14,26 +14,33 @@ const AddProduct = () => {
   const [description, setDescription] = useState('');
   const [image, setImage] = useState('');
   const [categories, setCategories] = useState<Category[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     const fetchCategories = async () => {
+      setLoadingCategories(true);
+      setError('');
+
       try {
-        const response = await fetch('http://localhost:5000/api/categories', { cache: 'no-cache' });
+        const response = await fetch('/api/categories', { cache: 'no-cache' });
         if (!response.ok) {
           throw new Error('Failed to fetch categories');
         }
         const data = await response.json();
         setCategories(data);
-        if (data.length > 0) {
+        if (Array.isArray(data) && data.length > 0) {
           setCategory(data[0]._id);
         }
       } catch (err: any) {
         setError(err.message);
+      } finally {
+        setLoadingCategories(false);
       }
     };
+
     fetchCategories();
   }, []);
 
@@ -46,7 +53,7 @@ const AddProduct = () => {
     setUploading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/upload', {
+      const response = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
       });
@@ -78,8 +85,18 @@ const AddProduct = () => {
       return;
     }
 
+    if (loadingCategories) {
+      setError('Please wait for categories to load before submitting.');
+      return;
+    }
+
+    if (!category) {
+      setError('Please select a category before submitting.');
+      return;
+    }
+
     try {
-      const response = await fetch('http://localhost:5000/api/products', {
+      const response = await fetch('/api/products', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -194,11 +211,20 @@ const AddProduct = () => {
                     onChange={(e) => setCategory(e.target.value)}
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
                     required
+                    disabled={loadingCategories || categories.length === 0}
                   >
-                    <option value="" disabled>Select a category</option>
-                    {categories.map((cat) => (
-                      <option key={cat._id} value={cat._id}>{cat.name}</option>
-                    ))}
+                    {loadingCategories ? (
+                      <option value="" disabled>Loading categories...</option>
+                    ) : categories.length === 0 ? (
+                      <option value="" disabled>No categories available</option>
+                    ) : (
+                      <>
+                        <option value="" disabled>Select a category</option>
+                        {categories.map((cat) => (
+                          <option key={cat._id} value={cat._id}>{cat.name}</option>
+                        ))}
+                      </>
+                    )}
                   </select>
                 </div>
               </div>
@@ -279,7 +305,7 @@ const AddProduct = () => {
                 {image ? (
                   <div className="relative">
                     <img
-                      src={image.startsWith('http') ? image : `http://localhost:5000${image}`}
+                      src={image.startsWith('http') ? image : `${image}`}
                       alt="Preview"
                       className="w-full h-48 object-cover rounded-xl border-2 border-gray-200"
                     />

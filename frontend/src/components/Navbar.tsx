@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import LogoutButton from './LogoutButton';
 import { useCart } from '../context/CartContext';
+import NotificationsMenu from './NotificationsMenu';
 
 const Navbar = ({ onSearch, onLocationSearch, onGeoLocationSearch }: { onSearch: (query: string) => void; onLocationSearch: (city: string) => void; onGeoLocationSearch: () => void; }) => {
   const { toggleCart, cartCount } = useCart();
@@ -25,7 +26,7 @@ const Navbar = ({ onSearch, onLocationSearch, onGeoLocationSearch }: { onSearch:
       if (searchQuery.length > 1) {
         try {
           // Fetch suggestions
-          const response = await fetch(`http://localhost:5000/api/products?keyword=${searchQuery}`);
+          const response = await fetch(`/api/products?keyword=${searchQuery}`);
           const data = await response.json();
           setSuggestions(data.slice(0, 5)); // Limit to 5 suggestions
           setShowSuggestions(true);
@@ -116,6 +117,10 @@ const Navbar = ({ onSearch, onLocationSearch, onGeoLocationSearch }: { onSearch:
               <span className="absolute top-0 right-0 flex items-center justify-center h-5 w-5 rounded-full bg-red-500 text-white text-xs font-bold">{cartCount}</span>
             )}
           </button>
+          <NotificationsMenu />
+          <Link to="/profile" className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold hover:bg-blue-200 transition-colors">
+            👤
+          </Link>
           <LogoutButton />
         </div>
       </div>

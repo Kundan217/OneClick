@@ -4,12 +4,14 @@ import LoginForm from '../components/LoginForm';
 import CustomerRegistrationForm from '../components/CustomerRegistrationForm';
 import VendorRegistrationForm from '../components/VendorRegistrationForm';
 import ForgotPasswordForm from '../components/ForgotPasswordForm';
+import OtpVerificationForm from '../components/OtpVerificationForm';
 import { Link } from 'react-router-dom';
 
 const AuthPage = () => {
   const [searchParams] = useSearchParams();
   const role = searchParams.get('role') || 'customer';
-  const [view, setView] = useState('login'); // login, register, forgotPassword
+  const [view, setView] = useState('login'); // login, register, forgotPassword, otp
+  const [verificationEmail, setVerificationEmail] = useState('');
 
   useEffect(() => {
     if (role === 'admin') {
@@ -51,7 +53,9 @@ const AuthPage = () => {
       case 'login':
         return <LoginForm setView={setView} role={role} />;
       case 'register':
-        return role === 'vendor' ? <VendorRegistrationForm setView={setView} /> : <CustomerRegistrationForm setView={setView} />;
+        return role === 'vendor' ? <VendorRegistrationForm setView={setView} setVerificationEmail={setVerificationEmail} /> : <CustomerRegistrationForm setView={setView} setVerificationEmail={setVerificationEmail} />;
+      case 'otp':
+        return <OtpVerificationForm email={verificationEmail} setView={setView} />;
       case 'forgotPassword':
         return <ForgotPasswordForm setView={setView} />;
       default:

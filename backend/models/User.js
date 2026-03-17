@@ -17,6 +17,10 @@ const userSchema = new mongoose.Schema({
     enum: ['customer', 'vendor', 'admin'],
     default: 'customer',
   },
+  isVerified: {
+    type: Boolean,
+    default: false,
+  },
 }, { timestamps: true });
 
 // Hash password before saving

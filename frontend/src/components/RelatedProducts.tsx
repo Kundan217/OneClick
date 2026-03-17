@@ -15,14 +15,14 @@ const RelatedProducts = ({ category, currentProductId }: RelatedProductsProps) =
         const fetchRelated = async () => {
             try {
                 // Use the new ML-based recommendation endpoint
-                const response = await fetch(`http://localhost:5000/api/products/${currentProductId}/recommendations`);
+                const response = await fetch(`/api/products/${currentProductId}/recommendations`);
                 if (response.ok) {
                     const data = await response.json();
                     setProducts(data);
                 } else {
                     // Fallback to category based if ML endpoint fails or returns empty (though ML engine handles it, failsafe)
                     console.warn('ML Recommendations failed, falling back to category');
-                    const catResponse = await fetch(`http://localhost:5000/api/products?category=${encodeURIComponent(category)}`);
+                    const catResponse = await fetch(`/api/products?category=${encodeURIComponent(category)}`);
                     const catData = await catResponse.json();
                     setProducts(catData.filter((p: any) => p._id !== currentProductId).slice(0, 4));
                 }

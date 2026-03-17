@@ -7,6 +7,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import ProductDetailPage from './pages/ProductDetailPage';
 import CategoryPage from './pages/CategoryPage';
 import CheckoutPage from './pages/CheckoutPage';
+import CustomerProfile from './pages/CustomerProfile';
 import CartPanel from './components/CartPanel';
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
         <Route path="/customer" element={<CustomerDashboard />} />
         <Route path="/vendor" element={<VendorDashboard />} />
         <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/profile" element={<CustomerProfile />} />
         <Route path="/product/:id" element={<ProductDetailPage />} />
         <Route path="/category/:categoryName" element={<CategoryPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
@@ -28,3 +30,4 @@ function App() {
 }
 
 export default App;
+

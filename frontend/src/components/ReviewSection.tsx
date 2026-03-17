@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { type Review } from '../types';
 import StarRating from './StarRating';
 
-const API_URL = 'http://localhost:5000';
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 interface ReviewSectionProps {
     productId: string;

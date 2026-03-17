@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 
-const API_URL = 'http://localhost:5000';
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 interface Vendor {
   _id: string;
@@ -15,7 +15,6 @@ interface Vendor {
 const VendorTable = () => {
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
 
   const fetchVendors = async () => {
     const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
@@ -29,10 +28,10 @@ const VendorTable = () => {
         const data = await response.json();
         setVendors(data);
       } else {
-        setError('Failed to fetch vendors');
+        console.error('Failed to fetch vendors');
       }
     } catch (err) {
-      setError('Error connecting to server');
+      console.error('Error connecting to server', err);
     } finally {
       setLoading(false);
     }

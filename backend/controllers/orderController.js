@@ -1,6 +1,8 @@
 import { Order } from '../models/Order.js';
 import { Vendor } from '../models/Vendor.js';
 import { Customer } from '../models/Customer.js';
+import { Notification } from '../models/Notification.js';
+import { User } from '../models/User.js';
 
 // @desc    Create a new order (regular or pre-booked)
 // @route   POST /api/orders
@@ -27,6 +29,12 @@ const createOrder = async (req, res) => {
       isPreBooked: isPreBooked || false,
       preBookSlot: preBookSlot || '',
       preBookNotes: preBookNotes || '',
+      trackingTimeline: [
+        {
+          status: 'pending',
+          message: 'Order has been placed successfully.',
+        }
+      ]
     });
 
     const createdOrder = await order.save();
@@ -41,16 +49,55 @@ const createOrder = async (req, res) => {
   }
 };
 
-// @desc    Get all orders
+// @desc    Get all orders for the logged in customer
+// @route   GET /api/orders/my-orders
+// @access  Private/Customer
+const getMyOrders = async (req, res) => {
+  try {
+    const customer = await Customer.findOne({ user: req.user._id });
+    if (!customer) {
+      return res.status(404).json({ message: 'Customer not found' });
+    }
+
+    const orders = await Order.find({ customer: customer._id })
+      .populate('orderItems.product', 'title image price')
+      .populate('orderItems.vendor', 'vendorName email city')
+      .sort({ createdAt: -1 });
+
+    res.json(orders);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// @desc    Get all orders for the logged in vendor
 // @route   GET /api/orders
 // @access  Private/Vendor
 const getAllOrders = async (req, res) => {
   try {
-    const orders = await Order.find({})
+    const vendor = await Vendor.findOne({ user: req.user._id });
+    if (!vendor) {
+      return res.status(404).json({ message: 'Vendor not found' });
+    }
+
+    const orders = await Order.find({ 'orderItems.vendor': vendor._id })
       .populate('orderItems.product', 'title image price')
       .populate('customer', 'name email')
-      .sort({ createdAt: -1 });
-    res.json(orders);
+      .sort({ createdAt: -1 })
+      .lean();
+
+    // Only keep order items belonging to this vendor and adjust totals accordingly.
+    const vendorOrders = orders.map((order) => {
+      const vendorItems = order.orderItems.filter((item) => item.vendor.toString() === vendor._id.toString());
+      const vendorTotal = vendorItems.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0);
+      return {
+        ...order,
+        orderItems: vendorItems,
+        totalPrice: vendorTotal,
+      };
+    });
+
+    res.json(vendorOrders);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
@@ -68,10 +115,46 @@ const updateOrderStatus = async (req, res) => {
       return res.status(404).json({ message: 'Order not found' });
     }
 
-    if (deliveryStatus) order.deliveryStatus = deliveryStatus;
+    const vendor = await Vendor.findOne({ user: req.user._id });
+    if (!vendor) return res.status(404).json({ message: 'Vendor not found' });
+
+    let message = 'Your order status has been updated.';
+    if (deliveryStatus) {
+      order.deliveryStatus = deliveryStatus;
+      
+      switch(deliveryStatus) {
+        case 'processing': message = 'Your order is currently being processed.'; break;
+        case 'shipped': message = 'Your order has been shipped and is on the way.'; break;
+        case 'out_for_delivery': message = 'Your order is out for delivery today!'; break;
+        case 'delivered': message = 'Your order has been delivered successfully.'; break;
+        case 'cancelled': message = 'Your order has been cancelled.'; break;
+      }
+
+      order.trackingTimeline.push({
+        status: deliveryStatus,
+        message,
+        location: vendor.city || 'Hub',
+      });
+    }
+
     if (paymentStatus) order.paymentStatus = paymentStatus;
 
     const updatedOrder = await order.save();
+
+    // Create a Notification for the customer
+    const customer = await Customer.findById(order.customer).populate('user');
+    if (customer && customer.user) {
+      await Notification.create({
+        user: customer.user._id,
+        type: 'order_update',
+        title: `Order ${order._id.toString().substring(0, 8)} Update`,
+        message: message,
+        relatedId: order._id,
+        onModel: 'Order',
+      });
+      // Optionally triggering an email here via nodemailer if configured
+    }
+
     res.json(updatedOrder);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -110,5 +193,5 @@ const getVendorSales = async (req, res) => {
   }
 };
 
-export { createOrder, getVendorSales, getAllOrders, updateOrderStatus };
+export { createOrder, getVendorSales, getAllOrders, updateOrderStatus, getMyOrders };
 

@@ -3,7 +3,23 @@ import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import Navbar from '../components/Navbar';
 
-const API_URL = 'http://localhost:5000';
+const API_URL = import.meta.env.VITE_API_URL || '';
+
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
+
+const loadScript = (src: string) => {
+  return new Promise((resolve) => {
+    const script = document.createElement('script');
+    script.src = src;
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
@@ -41,41 +57,114 @@ const CheckoutPage = () => {
     setError('');
 
     try {
-      const orderItems = cartItems.map(item => ({
-        product: item._id,
-        vendor: item.vendor?._id || item.vendor,
-        quantity: item.quantity,
-        price: item.price,
-      }));
+      // 1. Load Razorpay Script
+      const res = await loadScript('https://checkout.razorpay.com/v1/checkout.js');
+      if (!res) {
+        setError('Failed to load Razorpay SDK. Are you online?');
+        setPlacing(false);
+        return;
+      }
 
-      const fullAddress = `${fullName ? fullName + ', ' : ''}${address}${city ? ', ' + city : ''}${zip ? ' - ' + zip : ''}`;
-
-      const res = await fetch(`${API_URL}/api/orders`, {
+      // 2. Create Razorpay Order on Backend
+      const orderDataResponse = await fetch(`${API_URL}/api/payment/create-order`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${userInfo.token}`,
         },
-        body: JSON.stringify({
-          orderItems,
-          totalPrice: total,
-          address: fullAddress,
-        }),
+        body: JSON.stringify({ amount: total }),
       });
+      const orderData = await orderDataResponse.json();
 
-      if (res.ok) {
-        const order = await res.json();
-        alert(`✅ Order placed successfully! Order ID: ${order._id}`);
-        clearCart();
-        navigate('/customer');
-      } else {
-        const data = await res.json();
-        setError(data.message || 'Failed to place order.');
+      if (!orderDataResponse.ok) {
+        throw new Error(orderData.message || 'Error occurred while creating payment order');
       }
+
+      // 3. Initialize Razorpay UI
+      const options = {
+        key: 'rzp_test_change_this', // Typically from an env variable, but safe to hardcode test keys on frontend if needed or fetch from backend
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: 'OneClick',
+        description: 'Thank you for your purchase',
+        order_id: orderData.id,
+        handler: async function (response: any) {
+          try {
+            // 4. Verify Payment Signature on Backend
+            const verifyRes = await fetch(`${API_URL}/api/payment/verify`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${userInfo.token}`,
+              },
+              body: JSON.stringify(response),
+            });
+            const verifyData = await verifyRes.json();
+
+            if (verifyData.success) {
+              // 5. Payment verified -> Now log the actual backend Order 
+              const orderItems = cartItems.map(item => ({
+                product: item._id,
+                vendor: item.vendor?._id || item.vendor,
+                quantity: item.quantity,
+                price: item.price,
+              }));
+
+              const fullAddress = `${fullName ? fullName + ', ' : ''}${address}${city ? ', ' + city : ''}${zip ? ' - ' + zip : ''}`;
+
+              const orderCreationRes = await fetch(`${API_URL}/api/orders`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${userInfo.token}`,
+                },
+                body: JSON.stringify({
+                  orderItems,
+                  totalPrice: total,
+                  address: fullAddress,
+                  paymentStatus: 'paid'
+                }),
+              });
+
+              if (orderCreationRes.ok) {
+                const finalOrder = await orderCreationRes.json();
+                alert(`✅ Payment successful and Order placed! Order ID: ${finalOrder._id}`);
+                clearCart();
+                navigate('/customer');
+              } else {
+                throw new Error('Order creation failed after payment.');
+              }
+            } else {
+              throw new Error('Payment Signature Verification Failed');
+            }
+          } catch (err: any) {
+            console.error(err);
+            setError(err.message || 'Error completing the checkout process.');
+          } finally {
+            setPlacing(false);
+          }
+        },
+        prefill: {
+          name: fullName || userInfo.name || 'User',
+          email: userInfo.email || 'email@example.com',
+          contact: userInfo.phone || '9999999999',
+        },
+        theme: {
+          color: '#f97316', // orange-500
+        },
+        modal: {
+          ondismiss: function() {
+            setPlacing(false);
+          }
+        }
+      };
+
+      const paymentObject = new window.Razorpay(options);
+      paymentObject.open();
+
     } catch (err) {
       console.error('Order error:', err);
       setError('Something went wrong. Please try again.');
-    } finally {
       setPlacing(false);
     }
   };
@@ -128,14 +217,10 @@ const CheckoutPage = () => {
                   />
                 </div>
               </div>
-              {/* Payment Info */}
-              <div>
-                <h3 className="text-lg font-semibold text-gray-700 mt-6 mb-2">Payment Details</h3>
-                <input type="text" placeholder="Card Number" className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none" />
-                <div className="flex space-x-4 mt-4">
-                  <input type="text" placeholder="MM/YY" className="w-1/2 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none" />
-                  <input type="text" placeholder="CVC" className="w-1/2 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none" />
-                </div>
+              {/* Payment Info Removed - Razorpay handles this dynamically */}
+              <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                <h3 className="text-lg font-semibold text-orange-800 mb-2">Secure Payment Checkput</h3>
+                <p className="text-sm text-orange-700">You will be redirected to Razorpay to complete your payment securely via UPI, Cards, Netbanking, or Wallets.</p>
               </div>
             </div>
           </div>

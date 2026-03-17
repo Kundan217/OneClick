@@ -13,6 +13,7 @@ const AdminSidebar = ({ setActiveView }: { setActiveView: (view: string) => void
         { id: 'dashboard', label: 'Dashboard', icon: '📊' },
         { id: 'vendors', label: 'Manage Vendors', icon: '🏪' },
         { id: 'users', label: 'Users', icon: '👥' },
+        { id: 'issues', label: 'Review Issues', icon: '⚠️' },
         { id: 'settings', label: 'Settings', icon: '⚙️' },
     ];
 

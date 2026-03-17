@@ -11,8 +11,9 @@ import Footer from '../components/Footer';
 import PreBooking from '../components/PreBooking';
 import RelatedProducts from '../components/RelatedProducts';
 import ReviewSection from '../components/ReviewSection';
+import ReportIssueModal from '../components/ReportIssueModal';
 
-const API_URL = 'http://localhost:5000';
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 const getImageUrl = (imagePath: string) => {
   if (imagePath.startsWith('http')) return imagePath;
@@ -27,6 +28,7 @@ const ProductDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showPreBooking, setShowPreBooking] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
 
   const handlePreBook = async (slot: string, notes: string) => {
     const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
@@ -77,7 +79,7 @@ const ProductDetailPage = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/products/${id}`);
+        const response = await fetch(`/api/products/${id}`);
         if (!response.ok) {
           throw new Error('Failed to fetch product');
         }
@@ -133,6 +135,15 @@ const ProductDetailPage = () => {
               </div>
             </div>
 
+            <div className="flex border-t border-b py-4">
+               <button 
+                  onClick={() => setShowReportModal(true)}
+                  className="flex items-center text-red-500 hover:text-red-700 font-medium transition-colors"
+               >
+                 <span className="mr-2">⚠️</span> Report an Issue
+               </button>
+            </div>
+
             <div className="flex items-center space-x-4">
               <button onClick={() => addToCart(product)} className="flex-1 bg-gray-200 text-gray-800 py-4 rounded-xl font-semibold text-lg hover:bg-gray-300 transition-colors">Add to Cart</button>
               <button
@@ -147,6 +158,10 @@ const ProductDetailPage = () => {
               <div className="mt-6 animate-fade-in-up">
                 <PreBooking onPreBook={handlePreBook} />
               </div>
+            )}
+
+            {showReportModal && (
+               <ReportIssueModal productId={product._id} onClose={() => setShowReportModal(false)} />
             )}
 
             <PaymentOptions productPrice={product.price} />

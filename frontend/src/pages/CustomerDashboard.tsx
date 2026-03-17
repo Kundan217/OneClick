@@ -37,14 +37,14 @@ const CustomerDashboard = () => {
     const lat = searchParams.get('lat');
     const lon = searchParams.get('lon');
 
-    let url = 'http://localhost:5000/api/products';
+    let url = '/api/products';
 
     if (keyword) {
-      url = `http://localhost:5000/api/products?keyword=${keyword}`;
+      url = `/api/products?keyword=${keyword}`;
     } else if (city) {
-      url = `http://localhost:5000/api/products?city=${city}`;
+      url = `/api/products?city=${city}`;
     } else if (lat && lon) {
-      url = `http://localhost:5000/api/products?lat=${lat}&lon=${lon}`;
+      url = `/api/products?lat=${lat}&lon=${lon}`;
     }
 
     fetchProducts(url);
@@ -59,12 +59,12 @@ const CustomerDashboard = () => {
 
   const handleLocationSearch = (city: string) => {
     if (city) {
-      fetchProducts(`http://localhost:5000/api/products?city=${city}`);
+      fetchProducts(`/api/products?city=${city}`);
     } else if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
-          fetchProducts(`http://localhost:5000/api/products?lat=${latitude}&lon=${longitude}`);
+          fetchProducts(`/api/products?lat=${latitude}&lon=${longitude}`);
         },
         (err) => {
           console.error("Error getting location:", err);
@@ -81,7 +81,7 @@ const CustomerDashboard = () => {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
-          fetchProducts(`http://localhost:5000/api/products?lat=${latitude}&lon=${longitude}`);
+          fetchProducts(`/api/products?lat=${latitude}&lon=${longitude}`);
         },
         (err) => {
           console.error("Error getting location:", err);

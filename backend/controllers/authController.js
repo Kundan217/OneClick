@@ -3,6 +3,7 @@ import { Customer } from '../models/Customer.js';
 import { Vendor } from '../models/Vendor.js';
 import { generateToken } from '../utils/generateToken.js';
 import { PasswordResetToken } from '../models/PasswordResetToken.js';
+import { OtpToken } from '../models/OtpToken.js';
 import { sendEmail } from '../utils/sendEmail.js';
 import crypto from 'crypto';
 
@@ -23,6 +24,7 @@ const registerUser = async (req, res) => {
       email,
       password,
       role,
+      isVerified: true, // Auto-verify — no email OTP required
     });
 
     if (user) {
@@ -31,12 +33,8 @@ const registerUser = async (req, res) => {
         await Customer.create({ user: user._id, email, ...profileData });
       } else if (role === 'vendor') {
         const vendorData = { ...profileData, user: user._id, email };
-        // Ensure location has coordinates if not provided
         if (!vendorData.location || !vendorData.location.coordinates) {
-          vendorData.location = {
-            type: 'Point',
-            coordinates: [0, 0] // Default coordinates
-          };
+          vendorData.location = { type: 'Point', coordinates: [0, 0] };
         }
         await Vendor.create(vendorData);
       }
@@ -46,6 +44,7 @@ const registerUser = async (req, res) => {
         email: user.email,
         role: user.role,
         token: generateToken(user._id, user.role),
+        message: 'Account created successfully.',
       });
     } else {
       res.status(400).json({ message: 'Invalid user data' });
@@ -66,6 +65,7 @@ const loginUser = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (user && (await user.matchPassword(password))) {
+
       let profileData = {};
       if (user.role === 'customer') {
         const customer = await Customer.findOne({ user: user._id });
@@ -317,6 +317,121 @@ const deleteUser = async (req, res) => {
     } else {
       res.status(404).json({ message: 'User not found' });
     }
+} catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// @desc    Verify OTP
+// @route   POST /api/auth/verify-otp
+// @access  Public
+const verifyOtp = async (req, res) => {
+  const { email, otp } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (user.isVerified) {
+      return res.status(400).json({ message: 'User is already verified' });
+    }
+
+    // Find the latest OTP for this user
+    const otpTokens = await OtpToken.find({ email }).sort({ createdAt: -1 });
+    if (!otpTokens || otpTokens.length === 0) {
+      return res.status(400).json({ message: 'OTP expired or not found. Please resend.' });
+    }
+
+    const otpToken = otpTokens[0]; // most recent
+    const isMatch = await otpToken.matchOtp(otp);
+
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Invalid OTP' });
+    }
+
+    // Mark user as verified
+    user.isVerified = true;
+    await user.save();
+
+    // Delete used tokens
+    await OtpToken.deleteMany({ email });
+
+    // Login the user
+    let profileData = {};
+    if (user.role === 'customer') {
+      const customer = await Customer.findOne({ user: user._id });
+      if (customer) {
+        profileData = {
+          name: customer.name,
+          phone: customer.phone,
+          address: customer.address,
+          country: customer.country
+        };
+      }
+    } else if (user.role === 'vendor') {
+      const vendor = await Vendor.findOne({ user: user._id });
+      if (vendor) {
+        profileData = {
+          ownerName: vendor.ownerName,
+          vendorName: vendor.vendorName,
+          mobile: vendor.mobile,
+          address: vendor.address,
+          city: vendor.city,
+          storeDescription: vendor.storeDescription,
+          bankAccount: vendor.bankAccount,
+          ifscCode: vendor.ifscCode
+        };
+      }
+    }
+
+    res.json({
+      _id: user._id,
+      email: user.email,
+      role: user.role,
+      ...profileData,
+      token: generateToken(user._id, user.role),
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// @desc    Resend OTP
+// @route   POST /api/auth/resend-otp
+// @access  Public
+const resendOtp = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (user.isVerified) {
+      return res.status(400).json({ message: 'User is already verified' });
+    }
+
+    // Generate a new 6 digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    await OtpToken.create({
+      email: user.email,
+      otp: otp
+    });
+
+    const message = `Your new account verification OTP is: \n\n ${otp} \n\n This OTP is valid for 5 minutes.`;
+
+    await sendEmail({
+      email: user.email,
+      subject: 'OneClick Account Verification Resend',
+      message,
+    });
+
+    res.status(200).json({ message: 'OTP resent successfully to your email.' });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
@@ -330,5 +445,7 @@ export {
   getUserProfile,
   updateUserProfile,
   getUsers,
-  deleteUser
+  deleteUser,
+  verifyOtp,
+  resendOtp
 };

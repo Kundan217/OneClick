@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: oneclick-backend
+    env: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: MONGO_URI
+        # The user will need to input this in the Render dashboard
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: GEMINI_API_KEY
+        # The user will need to input this in the Render dashboard
+        sync: false
+      - key: EMAIL_HOST
+        value: sandbox.smtp.mailtrap.io
+      - key: EMAIL_USERNAME
+        sync: false
+      - key: EMAIL_PASSWORD
+        sync: false

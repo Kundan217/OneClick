@@ -1,5 +1,6 @@
 
 import { Link } from 'react-router-dom';
+import AISearchBar from '../components/AISearchBar';
 
 const RoleCard = ({ role, description, link, gradient, icon, delay }: { role: string; description: string; link: string; gradient: string; icon: string; delay: string }) => (
   <div className={`relative group p-8 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 bg-white border border-gray-100 overflow-hidden ${delay}`}>
@@ -47,7 +48,7 @@ const LandingPage = () => {
         </nav>
 
         {/* Header Section */}
-        <div className="text-center max-w-4xl mx-auto mb-20">
+        <div className="text-center max-w-4xl mx-auto mb-10">
           <span className="inline-block py-1 px-3 rounded-full bg-blue-50 text-blue-600 text-sm font-semibold mb-6 tracking-wide uppercase border border-blue-100">
             Welcome to the Future of Commerce
           </span>
@@ -57,6 +58,11 @@ const LandingPage = () => {
           <p className="text-xl md:text-2xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
             Join our thriving ecosystem. Whether you're buying unique finds, selling your craft, or managing the platform.
           </p>
+        </div>
+
+        {/* AI Search Bar */}
+        <div className="max-w-2xl mx-auto w-full mb-16 px-4">
+          <AISearchBar />
         </div>
 
         {/* Cards Grid */}
@@ -101,3 +107,4 @@ const LandingPage = () => {
 };
 
 export default LandingPage;
+

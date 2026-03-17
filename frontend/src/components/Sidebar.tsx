@@ -15,6 +15,7 @@ const Sidebar = ({ setActiveView }: { setActiveView: (view: string) => void }) =
     { id: 'orders', label: 'Orders', icon: '📦' },
     { id: 'preBookings', label: 'Pre-Bookings', icon: '📅' },
     { id: 'products', label: 'My Products', icon: '🏷️' },
+    { id: 'issues', label: 'Manage Issues', icon: '⚠️' },
     { id: 'settings', label: 'Settings', icon: '⚙️' },
   ];
 

@@ -15,6 +15,10 @@ import uploadRoutes from './routes/uploadRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import reviewRoutes from './routes/reviewRoutes.js';
+import aiRoutes from './routes/aiRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js';
+import issueRoutes from './routes/issueRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
 
 dotenv.config();
 
@@ -38,6 +42,10 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/ai', aiRoutes);
+app.use('/api/payment', paymentRoutes);
+app.use('/api/issues', issueRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Serve static assets
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

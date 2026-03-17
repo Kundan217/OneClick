@@ -4,8 +4,9 @@ import AddProduct from '../components/AddProduct';
 import Orders from '../components/Orders';
 import SalesChart from '../components/SalesChart';
 import VendorSettings from '../components/VendorSettings';
+import VendorIssues from '../components/VendorIssues';
 
-const API_URL = 'http://localhost:5000';
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 interface DashboardStats {
   totalProducts: number;
@@ -36,21 +37,30 @@ const VendorDashboard = () => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [editForm, setEditForm] = useState({ title: '', price: 0, countInStock: 0, description: '' });
 
-  const fetchProducts = async () => {
+  const fetchDashboardData = async () => {
     try {
       const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
-      const response = await fetch(`${API_URL}/api/products/my`, {
-        headers: {
-          'Authorization': `Bearer ${userInfo.token}`,
-        },
-      });
-      const products = await response.json();
+
+      const [productsResponse, ordersResponse] = await Promise.all([
+        fetch(`${API_URL}/api/products/my`, {
+          headers: { 'Authorization': `Bearer ${userInfo.token}` },
+        }),
+        fetch(`${API_URL}/api/orders`, {
+          headers: { 'Authorization': `Bearer ${userInfo.token}` },
+        }),
+      ]);
+
+      const products = productsResponse.ok ? await productsResponse.json() : [];
+      const orders = ordersResponse.ok ? await ordersResponse.json() : [];
+
+      const totalRevenue = orders.reduce((sum: number, order: any) => sum + (order.totalPrice || 0), 0);
+      const pendingOrdersCount = orders.filter((order: any) => order.deliveryStatus === 'pending').length;
 
       setStats({
         totalProducts: products.length,
-        totalOrders: Math.floor(Math.random() * 50) + 10,
-        totalRevenue: products.reduce((sum: number, p: any) => sum + p.price, 0),
-        pendingOrders: Math.floor(Math.random() * 10) + 2
+        totalOrders: orders.length,
+        totalRevenue: totalRevenue,
+        pendingOrders: pendingOrdersCount,
       });
 
       setAllProducts(products);
@@ -65,7 +75,7 @@ const VendorDashboard = () => {
     // Prioritize Store Name (vendorName), then Owner Name, then Name (customer), then fallback
     const displayName = userInfo.vendorName || userInfo.ownerName || userInfo.name || 'Merchant';
     setVendorName(displayName);
-    fetchProducts();
+    fetchDashboardData();
   }, []);
 
   // Delete Product
@@ -237,6 +247,13 @@ const VendorDashboard = () => {
           <span className="text-2xl">🏷️</span>
           <span className="font-semibold">Manage Products</span>
         </button>
+        <button
+          onClick={() => setActiveView('issues')}
+          className="flex items-center justify-center space-x-3 p-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 transition-all shadow-md"
+        >
+          <span className="text-2xl">⚠️</span>
+          <span className="font-semibold">Review Issues</span>
+        </button>
       </div>
     </div>
   );
@@ -312,6 +329,8 @@ const VendorDashboard = () => {
         return <Orders filterPreBooked={true} />;
       case 'products':
         return renderProducts();
+      case 'issues':
+        return <VendorIssues />;
       case 'settings':
         return <VendorSettings />;
       default:

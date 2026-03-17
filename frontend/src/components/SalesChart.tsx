@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
-const API_URL = 'http://localhost:5000';
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 interface Order {
   _id: string;
@@ -93,7 +93,7 @@ const SalesChart = () => {
               <YAxis tick={{ fontSize: 12 }} />
               <Tooltip
                 contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                formatter={(value: number) => [`₹${value.toLocaleString()}`, 'Revenue']}
+                formatter={(value: any) => [`₹${Number(value).toLocaleString()}`, 'Revenue']}
               />
               <Bar dataKey="revenue" fill="#3B82F6" radius={[4, 4, 0, 0]} />
             </BarChart>

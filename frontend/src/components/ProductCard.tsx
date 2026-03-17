@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import StarRating from './StarRating';
 
-const API_URL = 'http://localhost:5000';
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 const ProductCard = ({ product }: { product: Product }) => {
   const { addToCart } = useCart();

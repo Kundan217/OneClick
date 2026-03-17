@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-const CustomerRegistrationForm = ({ setView }: { setView: (view: string) => void }) => {
+const CustomerRegistrationForm = ({ setView, setVerificationEmail }: { setView: (view: string) => void, setVerificationEmail?: (email: string) => void }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -13,7 +13,7 @@ const CustomerRegistrationForm = ({ setView }: { setView: (view: string) => void
     setSuccess('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/register', {
+      const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password, role: 'customer' }),
@@ -25,8 +25,13 @@ const CustomerRegistrationForm = ({ setView }: { setView: (view: string) => void
         throw new Error(data.message || 'Failed to register');
       }
 
-      setSuccess('Registration successful! Please login.');
-      setTimeout(() => setView('login'), 2000);
+      setSuccess('Registration successful! Please verify your email.');
+      if (data.requiresOtp && data.email && setVerificationEmail) {
+        setVerificationEmail(data.email);
+        setTimeout(() => setView('otp'), 1500);
+      } else {
+        setTimeout(() => setView('login'), 2000);
+      }
     } catch (err: any) {
       setError(err.message);
     }
